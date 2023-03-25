@@ -59,7 +59,17 @@ def get_baba(raceId):
     baba_distance = raceData.span.text.strip()
     # 芝・ダート・障害 取得
     baba = baba_distance[0]
-    print(baba)
+    # 馬場状態取得
+    if soup.find(class_="Item04"):
+        babaCondition = soup.find(
+            class_="Item04").text[5:]
+    elif soup.find(class_="Item03"):
+        babaCondition = soup.find(
+            class_="Item03").text[5:]
+    else:
+        pass
+    print(babaCondition)
+    return babaCondition
 
 def gen_graph(data):
     # 辞書をpandasのデータフレームに変換する
@@ -97,18 +107,25 @@ def gen_graph(data):
 
 def analytics(races_data):
     wakuban_dict = {}
-    for i in range(3):
-        wakuban_dict[i] = {}
-        for k,v in races_data.items():
-                goal_arrival = v.loc[i,"人 気"]
-                if goal_arrival not in wakuban_dict[i]:
-                    wakuban_dict[i][goal_arrival] = 0
-                wakuban_dict[i][goal_arrival] += 1
-        sorted_waku = dict(sorted(wakuban_dict[i].items(),key=lambda x: x[1], reverse=True))
-        wakuban_dict[i] = copy.deepcopy(sorted_waku)
-        
-    print(wakuban_dict)
-    gen_graph(wakuban_dict)
+    fileName = ""
+    result = {}
+    for key in races_data.keys():
+        key = key.split("_")
+        raceId = key[0]
+        baba = get_baba(raceId)
+        result[baba] = {}
+        for i in range(3):
+            wakuban_dict[baba][i] = {}
+            for k,v in races_data.items():
+                    goal_arrival = v.loc[i,"人 気"]
+                    if goal_arrival not in wakuban_dict[baba][i]:
+                        wakuban_dict[baba][i][goal_arrival] = 0
+                    wakuban_dict[baba][i][goal_arrival] += 1
+            sorted_waku = dict(sorted(wakuban_dict[baba][i].items(),key=lambda x: x[1], reverse=True))
+            wakuban_dict[baba][i] = copy.deepcopy(sorted_waku)
+            
+        print(wakuban_dict)
+        gen_graph(wakuban_dict)
 
 def main():
     races_data = read_Data()

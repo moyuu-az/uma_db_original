@@ -59,7 +59,17 @@ def get_baba(raceId):
     baba_distance = raceData.span.text.strip()
     # 芝・ダート・障害 取得
     baba = baba_distance[0]
-    print(baba)
+    # 馬場状態取得
+    if soup.find(class_="Item04"):
+        babaCondition = soup.find(
+            class_="Item04").text[5:]
+    elif soup.find(class_="Item03"):
+        babaCondition = soup.find(
+            class_="Item03").text[5:]
+    else:
+        pass
+    print(babaCondition)
+    return babaCondition
 
 def gen_graph(data):
     # 辞書をpandasのデータフレームに変換する
