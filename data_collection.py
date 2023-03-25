@@ -103,7 +103,23 @@ def get_race_name(race_url):
         print(race_dict)
         return race_dict['race_title']
     except:
-        return "ERROR"
+        return "ERROR"]
+
+def get_baba(raceId):
+    Base = 'https://race.netkeiba.com/race/result.html?race_id='  # レース結果のURL
+    url = Base + raceId  # レース結果のURL
+    print('\n' + raceId)
+    html = requests.get(url)
+    soup = BeautifulSoup(html.content, 'html.parser')
+    raceName = soup.find(class_="RaceName")
+    print(raceName)
+    # レース情報(芝・ダート・障害・距離)取得
+    raceData = soup.find(class_="RaceData01")
+    # 芝・ダート・障害/距離取得
+    baba_distance = raceData.span.text.strip()
+    # 芝・ダート・障害 取得
+    baba = baba_distance[0]
+    print(baba)
     
     
 def gen_race_id():

@@ -28,7 +28,7 @@ def read_Data():
         for fileName in file_names:
             # print(f"fileName : {fileName}")
             race_Lists = ["CBC","高松宮","浜松"]
-            if "CBC" in fileName or "高松宮" in fileName or "浜松" in fileName :
+            if "CBC" in fileName or "高松宮" in fileName or "浜松" in fileName:
                 print(f"fileName : {fileName}")
                 df = read_file(f"{dir_path}/{fileName}")
                 races_data[fileName] = df
@@ -49,13 +49,14 @@ def gen_graph(data):
     plt.xlabel('zyuni +1 shite')
     plt.ylabel('hindo')
 
-    
+    # CSVファイルとして保存する
+    df.to_csv('out/csv/data.csv', index_label='First layer')
     
     # ファイル名を指定する
     file_name = 'bar_chart.png'
 
     # 既に同じ名前のファイルがある場合は、ファイル名を変更する
-    if os.path.isfile(file_name):
+    if os.path.isfile(f"out/fig/{file_name}"):
         i = 1
         while True:
             new_file_name = f'bar_chart_{i}.png'
@@ -73,7 +74,7 @@ def analytics(races_data):
     for i in range(3):
         wakuban_dict[i] = {}
         for k,v in races_data.items():
-                goal_arrival = v.loc[i,"枠 番"]
+                goal_arrival = v.loc[i,"人 気"]
                 if goal_arrival not in wakuban_dict[i]:
                     wakuban_dict[i][goal_arrival] = 0
                 wakuban_dict[i][goal_arrival] += 1
