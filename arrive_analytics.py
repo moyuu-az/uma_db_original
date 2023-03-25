@@ -3,6 +3,16 @@ import os
 import pandas as pd
 import copy
 import matplotlib.pyplot as plt
+import sys
+sys.path.append("lib.bs4")
+from bs4 import BeautifulSoup
+import requests
+import pandas as pd
+import numpy as np
+import urllib.request
+import re
+import csv
+
 
 def read_file(csv_file):
     # with open(csv_file, newline="") as f:
@@ -34,6 +44,22 @@ def read_Data():
                 races_data[fileName] = df
     # print(races_data)
     return races_data
+
+def get_baba(raceId):
+    Base = 'https://race.netkeiba.com/race/result.html?race_id='  # レース結果のURL
+    url = Base + raceId  # レース結果のURL
+    print('\n' + raceId)
+    html = requests.get(url)
+    soup = BeautifulSoup(html.content, 'html.parser')
+    raceName = soup.find(class_="RaceName")
+    print(raceName)
+    # レース情報(芝・ダート・障害・距離)取得
+    raceData = soup.find(class_="RaceData01")
+    # 芝・ダート・障害/距離取得
+    baba_distance = raceData.span.text.strip()
+    # 芝・ダート・障害 取得
+    baba = baba_distance[0]
+    print(baba)
 
 def gen_graph(data):
     # 辞書をpandasのデータフレームに変換する
