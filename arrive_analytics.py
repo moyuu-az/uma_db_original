@@ -12,6 +12,7 @@ import numpy as np
 import urllib.request
 import re
 import csv
+import time
 
 
 def read_file(csv_file):
@@ -48,11 +49,11 @@ def read_Data():
 def get_baba(raceId):
     Base = 'https://race.netkeiba.com/race/result.html?race_id='  # レース結果のURL
     url = Base + raceId  # レース結果のURL
-    print('\n' + raceId)
+    print(raceId)
     html = requests.get(url)
     soup = BeautifulSoup(html.content, 'html.parser')
     raceName = soup.find(class_="RaceName")
-    print(raceName)
+    # print(raceName)
     # レース情報(芝・ダート・障害・距離)取得
     raceData = soup.find(class_="RaceData01")
     # 芝・ダート・障害/距離取得
@@ -68,10 +69,10 @@ def get_baba(raceId):
             class_="Item03").text[5:]
     else:
         pass
-    print(babaCondition)
+    # print(babaCondition)
     return babaCondition
 
-def gen_graph(data):
+def gen_graph(data,babaCond):
     # 辞書をpandasのデータフレームに変換する
     df = pd.DataFrame.from_dict(data, orient='index')
 
@@ -84,9 +85,24 @@ def gen_graph(data):
     # 軸ラベルを設定する
     plt.xlabel('zyuni +1 shite')
     plt.ylabel('hindo')
+    
+    # ファイル名を指定する
+    file_name_csv = f'{babaCond}_bar_data.csv'
+
+    # 既に同じ名前のファイルがある場合は、ファイル名を変更する
+    if os.path.isfile(f"out/csv/{file_name_csv}"):
+        i = 1
+        while True:
+            new_file_name = f'{babaCond}_bar_data_{i}.csv'
+            if os.path.isfile(new_file_name):
+                i += 1
+            else:
+                file_name_csv = new_file_name
+                break
 
     # CSVファイルとして保存する
-    df.to_csv('out/csv/data.csv', index_label='First layer')
+    time.sleep(0.5)
+    df.to_csv(f'out/csv/{file_name_csv}', index_label='First layer')
     
     # ファイル名を指定する
     file_name = 'bar_chart.png'
@@ -106,26 +122,31 @@ def gen_graph(data):
     plt.savefig(f"out/fig/{file_name}")
 
 def analytics(races_data):
-    wakuban_dict = {}
+    result = {}
     fileName = ""
     result = {}
-    for key in races_data.keys():
-        key = key.split("_")
-        raceId = key[0]
-        baba = get_baba(raceId)
-        result[baba] = {}
-        for i in range(3):
-            wakuban_dict[baba][i] = {}
-            for k,v in races_data.items():
-                    goal_arrival = v.loc[i,"人 気"]
-                    if goal_arrival not in wakuban_dict[baba][i]:
-                        wakuban_dict[baba][i][goal_arrival] = 0
-                    wakuban_dict[baba][i][goal_arrival] += 1
-            sorted_waku = dict(sorted(wakuban_dict[baba][i].items(),key=lambda x: x[1], reverse=True))
-            wakuban_dict[baba][i] = copy.deepcopy(sorted_waku)
-            
-        print(wakuban_dict)
-        gen_graph(wakuban_dict)
+    
+    for babaCond in ["良","稍","重","不"]:
+        result[babaCond] = {}
+    
+    for i in range(3):
+        for key,v in races_data.items():
+            key = key.split("_")
+            raceId = key[0]
+            baba = get_baba(raceId)
+            if i not in result[baba]:
+                result[baba][i] = {}
+            goal_arrival = v.loc[i,"枠 番"]
+            if goal_arrival not in result[baba][i]:
+                result[baba][i][goal_arrival] = 0
+            result[baba][i][goal_arrival] += 1
+        sorted_waku = dict(sorted(result[baba][i].items(),key=lambda x: x[1], reverse=True))
+        result[baba][i] = copy.deepcopy(sorted_waku)
+        
+    for babaCond in ["良","稍","重","不"]:
+        print(babaCond)
+        print(result[babaCond])
+        gen_graph(result[babaCond],babaCond)
 
 def main():
     races_data = read_Data()
